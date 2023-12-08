@@ -5,9 +5,9 @@
 LAMS is a style guide and linter for [Looker](https://looker.com/)'s LookML data modeling language. It is designed to help a team of developers to produce more maintainable LookML projects.
 
 - The [style guide](https://looker-open-source.github.io/look-at-me-sideways/rules.html) alone can help your project, even without enforcement by the linter.
-- The linter can be configured to enforce rules from the style guide for all commits to your master branch.
+- The linter comes with a number of built-in rules from the style guide.
 - The linter also allows you to conveniently specify custom rules to enforce.
-- In addition to enforcing rules, the linter also produces markdown files to help developers navigate the project.
+- The linter can be deployed to enforce rules for all commits to your master branch.
 
 Interested? See a video of LAMS in action!
 
@@ -16,7 +16,7 @@ Interested? See a video of LAMS in action!
 ## Contents
 
 - [Functionality & Features](#functionality--features)
-	- [Predefined Linter Rules](#predefined-linter-rules)
+	- [Built-in Linter Rules](#built-in-linter-rules)
 	- [Rule Exemptions](#rule-exemptions)
 	- [Custom Rules](#custom-rules)
 	- [Output](#output)
@@ -26,15 +26,40 @@ Interested? See a video of LAMS in action!
 
 ## Functionality & Features
 
-### Predefined Linter Rules
+### Built-in Linter Rules
 
-The linter currently enforces rules K1-4, F1-4, E1-2, and T1-10 from the [style guide](https://looker-open-source.github.io/look-at-me-sideways/rules.html).
+The linter comes with built-in rules that can enforce rules K1-4, F1-4, E1-2, T1-2, and W1 from the [style guide](https://looker-open-source.github.io/look-at-me-sideways/rules.html).
 
-It currently does not resolve `extends` references, so if you are complying with a rule via extension, use a rule exemption as noted below.
+As of LAMS v3, you must opt-in via your `manifest.lkml` file to use the built-in rules. Here is an example declaration opting in to all the currently available built-in rules:
+
+```lkml
+#LAMS
+#rule: K1{} # Primary key naming
+#rule: K3{} # Primary keys first
+#rule: K4{} # Primary keys hidden
+#rule: K7{} # Provide one `primary_key`
+#rule: K8{} # `primary_key` uses PK dims
+#rule: F1{} # No cross-view fields
+#rule: F2{} # No view-labeled fields
+#rule: F3{} # Count fields filtered
+#rule: F4{} # Description or hidden
+#rule: E1{} # Join with subst'n operator
+#rule: E2{} # Join on PK for "one" joins
+#rule: E6{} # FK joins are m:1
+#rule: E7{} # Explore label 25-char max
+#rule: T1{} # Triggers use datagroups 
+#rule: T2{} # Primary keys in DT
+#rule: W1{} # Block indentation
+#rule: W1{} # Block indentation
+```
+
+### Custom Rules
+
+In addition to linting against its [style guide](https://looker-open-source.github.io/look-at-me-sideways/rules.html), LAMS also lets you specify your own rules. See [Customizing LAMS](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams).
 
 ### Rule Exemptions
 
-You can opt-out of rules either globally or granularly using `rule_exemptions`.
+You can opt-out of rules granularly by locally specifying `rule_exemptions`.
 
 The rule exemption syntax encourages developers to document the reason for each such exemption:
 
@@ -42,22 +67,23 @@ The rule exemption syntax encourages developers to document the reason for each 
 view: rollup {
   sql_table_name: my_table ;;
 
-  # LAMS
-  # rule_exemptions: {
-  #  K3: "2018-11-12 - Dimensions are out of order for reason X and Bob said it's ok"
-  # }
+  #LAMS
+  #rule_exemptions: {
+  #  K3: "2018-11-12 - Bob said it's ok"
+  #}
   dimension: info {...}
   ...
 ```
 
-Note: For large projects with many exemptions, we suggest starting the reasons with the Y-M-D formatted date on which they were added, for easier review in your issue report.
+(BETA) You can also opt-out of rules granularly from a centrally maintained `lams-exemptions.ndjson` file. Simply specify the rule name and location to exempt in a series of newline-terminated JSON objects:
 
-If you want to entirely opt-out of checking a particular rule, you can specify the exemptions in your project's manifest.lkml file. See [customizing LAMS](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams) for additional details.
+```js
+{"rule":"K3","location":"model:my_model/view:rollup"}
+{"rule":"K3","location":"model:my_other_model/view:foo"}
 
-### Custom Rules
+```
 
-In addition to linting against its [style guide](https://looker-open-source.github.io/look-at-me-sideways/rules.html), LAMS also lets you specify your own rules. See [Customizing LAMS](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams).
-
+You may also apply rule_exemptions globally in your project.manifest, but this is generally unnecessary as of LAMS v3.
 
 ### Output
 
@@ -80,14 +106,14 @@ Regardless of which example you follow, we recommend pinning your LAMS version t
 - **Local Interactive Usage** - To use LAMS with the least overhead for simple interactive local use and testing:
 
 ```bash
-npm install -g @looker/look-at-me-sideways@2
+npm install -g @looker/look-at-me-sideways@3
 cd <your-lookml-project>
 lams
 ```
 
 - **[Github Action](https://looker-open-source.github.io/look-at-me-sideways/github-action)** - This option is very quick to get started if you're using Github, and offers a compromise between convenience of setup and per-commit run performance.
 
-The following examples were prepared for v1 of LAMS, though updating them for v2 should be straightforward. Please review [v2 release notes](https://looker-open-source.github.io/look-at-me-sideways/release-notes/v2) for details. In particular, look for error messages on the console's standard output rather than a file output to be committed back to the repo. 
+The following examples were prepared for v1 of LAMS, though updating them for v2+ should be straightforward. Please review [v2 release notes](https://looker-open-source.github.io/look-at-me-sideways/release-notes/v2) for details. In particular, look for error messages on the console's standard output rather than a file output to be committed back to the repo. 
 
 - **[GitLab CI](https://looker-open-source.github.io/look-at-me-sideways/gitlab-ci)** - A community-contributed configuration for GitLab, which offers similarly low overhead as our dockerized Jenkins configuration
 - **[Dockerized Jenkins Server](https://github.com/looker-open-source/look-at-me-sideways/blob/master/docker/README.md)** - We have provided a Docker image with an end-to-end configuration including a Jenkins server, LAMS, and Github protected branches & status checks configuration. 
@@ -100,7 +126,7 @@ The following examples were prepared for v1 of LAMS, though updating them for v2
 - **reporting** - Required. One of `yes`, `no`, `save-yes`, or `save-no`. See [PRIVACY.md](https://github.com/looker-open-source/look-at-me-sideways/blob/master/PRIVACY.md) for details.
 - **report-user** - An email address to use in reporting. See [PRIVACY.md](https://github.com/looker-open-source/look-at-me-sideways/blob/master/PRIVACY.md) for details.
 - **report-license-key** - A Looker license key to use in reporting. See [PRIVACY.md](https://github.com/looker-open-source/look-at-me-sideways/blob/master/PRIVACY.md) for details.
-- **output** - A comma-separated string of output modes from among: `lines` (default), `markdown`, `markdown-developer`, `jenkins`, `legacy-cli`
+- **output** - A comma-separated string of output modes from among: `lines` (default), `markdown`, `markdown-developer`, `jenkins`, `legacy-cli`, or (BETA) `add-exemptions`
 - **source** - A glob specifying which files to read. Defaults to `**/{*.model,*.explore,*.view,manifest}.lkml`.
 - **cwd** - A path for LAMS to use as its current working directory. Useful if you are not invoking lams from your LookML repo directory.
 - **project-name** - An optional name for the project, used to generate links back to the project in mardown output. Specifying this in manifest.lkml is preferred.
@@ -108,21 +134,22 @@ The following examples were prepared for v1 of LAMS, though updating them for v2
 - **on-parser-error** - Set to "info" to indicate that LookML parsing errors should not fail the linter, but yield an `info` level message instead (not all output modes display `info` level messages)
 - **verbose** - Set to also output `verbose` level messages, for output modes that support it (`lines`)
 - **date-output** - Set to "none" to skip printing the date at the top of the `issues.md` file.
-- **allow-custom-rules** - Experimental and not recommended. Used to approve the running of Javascript-based custom rules. DO NOT USE TO RUN UNTRUSTED CODE. See [custom rules](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams) for details.
+- **allow-custom-rules** - Experimental and not recommended. Used to approve the running of **Javascript-based** custom rules. DO NOT USE TO RUN UNTRUSTED CODE. See [custom rules](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams) for details.
 
 ### Manifest.lkml arguments
 
 If your LookML project doesn't have a manifest.lkml file, you may want to consider adding one! LAMS uses the following information from your project's mainfest.lkml file:
 
 - **name** - Recommended. A name for the project, used to generate links back to the project in mardown output. If the native LookML validator complains about an unnecessary project name, you can use a conditional #LAMS comment to specify it.
-- **rule_exemptions** - Optional. Used to entirely opt out of rules.  See [customizing LAMS](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams)
-- **rule: rule_name** - Optional. Used to specify custom rules.  See [customizing LAMS](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams)
+- **rule: rule_name** - Recommended. Used to opt-in to built-in rules and to specify custom rules.  See [customizing LAMS](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams)
+- **rule_exemptions** - Optional. Originally used in 1 & v2 to opt-out of rules globally. A global opt-out can still be useful for opting-out of certain "sub rules" that a rule may return without opting-out of the entire rule.  See [customizing LAMS](https://looker-open-source.github.io/look-at-me-sideways/customizing-lams)
 
 ## About
 
 ### Release Notes
 
 - [v2](https://looker-open-source.github.io/look-at-me-sideways/release-notes/v2)
+- [v3](https://looker-open-source.github.io/look-at-me-sideways/release-notes/v3)
 
 ### Privacy Policy
 
@@ -130,7 +157,7 @@ LAMS respects user privacy. See [PRIVACY.md](https://github.com/looker-open-sour
 
 ### License
 
-LAMS is Copyright (c) 2018 Looker Data Sciences, Inc. and is licensed under the MIT License. See [LICENSE.txt](https://github.com/looker-open-source/look-at-me-sideways/blob/master/LICENSE.txt) for license details.
+LAMS is Copyright (c) 2023 Looker Data Sciences, Inc. and is licensed under the MIT License. See [LICENSE.txt](https://github.com/looker-open-source/look-at-me-sideways/blob/master/LICENSE.txt) for license details.
 
 ### Support
 
@@ -171,13 +198,14 @@ npm publish
 
 This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the
 [Contributer Covenant Code of Conduct](https://www.contributor-covenant.org/version/1/4/code-of-conduct). Concerns or
-incidents may be reported confidentially to fabio@looker.com.
+incidents may be reported confidentially to fabble@google.com.
 
 ### Other LookML Linting Projects
 
-Like LAMS but looking to shop around a bit? The community has come up with a few othre LookML linting options:
+Interested in LookML linting but looking to shop around a bit? The community has come up with a few other options:
 
 - https://github.com/rbob86/lookml-linter
+- [Spectacles.dev](https://spectacles.dev)'s style validator
 - https://github.com/ww-tech/lookml-tools/blob/master/README_LINTER.md
 - https://pypi.org/project/lookmlint/
 

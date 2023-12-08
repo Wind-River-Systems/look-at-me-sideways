@@ -1,8 +1,8 @@
 view: user {
-	# LAMS
-	# rule_exemptions: {
-	#	K3: "This view has non-key dimensions first, against K3, but K3 is globally exempt"
-	# }
+	#LAMS
+	#rule_exemptions: {
+	#	K3: "This view has non-key dimensions first, against K3, but K3 is locally exempt"
+	#}
 
 	sql_table_name: user ;;
 
